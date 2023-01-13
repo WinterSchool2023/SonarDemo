@@ -9,7 +9,7 @@
 	
 ## Running
 - build & run *or*
-- docker-compose build & docker-compose u
+- docker-compose build & docker-compose up
 
 ## Usage
 - http://127.0.0.1:8280/api/v1/swagger-ui.html
