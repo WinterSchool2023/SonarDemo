@@ -27,16 +27,8 @@ jobs:
         with:
           name: measurements_backend_jar
           path: measurements_backend/staging
-
-  test:
-    name: Run tests
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
-        with:
-          java-version: 17
-      - name: Run tests
-        working-directory: ./measurements_backend
-        run: ./mvnw -B test
+      - name: Build and analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -f measurements_backend/ -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=WinterSchool2023_SonarDemo -Dsonar.qualitygate.wait=true
