@@ -1,36 +1,29 @@
-name: SonarCloud
+name: Backend build&test&release
+
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches: [ "main" ]
+
+env:
+  GITHUB_TOKEN: ${{ github.token }}
+  IMAGE_NAME: winter23-measurements
+
 jobs:
   build:
-    name: Build and static analysis
+    name: Build Artefact
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: Set up JDK 17
-        uses: actions/setup-java@v1
+      - uses: actions/setup-java@v1
         with:
           java-version: 17
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v1
+      - run: mvn -B package --file pom.xml -DskipTests
+        working-directory: measurements_backend
+      - run: mkdir staging && cp target/*.jar staging/measurements_backend.jar
+        working-directory: measurements_backend
+      - uses: actions/upload-artifact@v1
         with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-      - name: Cache Maven packages
-        uses: actions/cache@v1
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-      - name: Build and analyze
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -f measurements_backend/ -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=WinterSchool2023_SonarDemo -Dsonar.qualitygate.wait=true
+          name: measurements_backend_jar
+          path: measurements_backend/staging
